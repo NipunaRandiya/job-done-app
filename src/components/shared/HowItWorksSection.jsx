@@ -1,99 +1,82 @@
 import React from 'react';
+import { FiFileText, FiUsers, FiDollarSign, FiCalendar } from "react-icons/fi";
 
-const FileTextIcon = (props) => (
-  <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
-    <polyline points="14 2 14 8 20 8" />
-    <line x1="16" x2="8" y1="13" y2="13" />
-    <line x1="16" x2="8" y1="17" y2="17" />
-  </svg>
-);
-
-const UsersIcon = (props) => (
-  <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-    <circle cx="9" cy="7" r="4" />
-    <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-  </svg>
-);
-
-const DollarSignIcon = (props) => (
-  <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <line x1="12" x2="12" y1="2" y2="22" />
-    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-  </svg>
-);
-
-const CalendarIcon = (props) => (
-  <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-    <line x1="16" x2="16" y1="2" y2="6" />
-    <line x1="8" x2="8" y1="2" y2="6" />
-    <line x1="3" x2="21" y1="10" y2="10" />
-  </svg>
-);
-
-
-// Step Data Array
 const steps = [
   {
-    icon: FileTextIcon,
-    title: 'Describe Your Project',
-    description: 'Tell us what you need help with by describing your project or issue in detail.'
+    icon: <FiFileText />,
+    title: 'Describe Project',
+    description: 'Tell us what you need help with by describing your issue in detail.'
   },
   {
-    icon: UsersIcon,
-    title: 'Get Matched with Pros',
-    description: "We'll connect you with qualified professionals who specialize in your type of project."
+    icon: <FiUsers />,
+    title: 'Get Matched',
+    description: "We'll connect you with qualified professionals specializing in your type of task."
   },
   {
-    icon: DollarSignIcon,
-    title: 'Review Cost Estimates',
-    description: 'Receive personalized cost estimates based on your project details and material needs.'
+    icon: <FiDollarSign />,
+    title: 'Review Estimates',
+    description: 'Receive personalized cost estimates based on your details and material needs.'
   },
   {
-    icon: CalendarIcon,
+    icon: <FiCalendar />,
     title: 'Schedule Service',
-    description: 'Choose a time that works for you and book your service with your selected professional.'
+    description: 'Choose a time that works for you and book with your selected professional.'
   }
 ];
 
 const HowItWorksSection = () => {
   return (
-    <section className="py-16 font-sans bg-transparent">
-      <div className="container mx-auto px-4 max-w-7xl">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <h2 className="text-4xl font-extrabold text-gray-900 mb-3">
-            How It Works
+    <section className="py-32 font-sans bg-white relative overflow-hidden">
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent"></div>
+
+      <div className="container mx-auto px-6 max-w-7xl">
+        <div className="text-center max-w-3xl mx-auto mb-20">
+          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-blue-600 mb-4">The Process</p>
+          <h2 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight mb-6">
+            Four Simple Steps
           </h2>
-          <p className="text-lg text-gray-600">
-            Four simple steps to get your home project completed
+          <p className="text-lg text-slate-500 font-medium">
+            We've streamlined the way you find and hire home professionals to save you time and stress.
           </p>
         </div>
+        <div className="relative grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
+          
+          <div className="hidden lg:block absolute top-12 left-0 w-full h-0.5 bg-slate-50 z-0"></div>
 
-        {/* Steps Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {steps.map((step, index) => (
-            <div key={index} className="flex flex-col items-start text-left p-4">
+            <div key={index} className="relative z-10 group">
               
-              {/* Icon */}
-              <div className="p-4 bg-indigo-500/80 rounded-full text-white mb-6 shadow-md">
-                <step.icon className="w-6 h-6" />
+              <div className="relative mb-8 inline-block">
+                <div className="w-24 h-24 bg-white rounded-[2rem] border border-slate-100 flex items-center justify-center text-3xl text-slate-900 shadow-xl shadow-slate-100 group-hover:bg-slate-900 group-hover:text-white transition-all duration-500">
+                  {step.icon}
+                </div>
+                
+                <div className="absolute -top-2 -right-2 w-8 h-8 bg-blue-600 rounded-xl flex items-center justify-center text-white text-xs font-black shadow-lg border-4 border-white">
+                  0{index + 1}
+                </div>
               </div>
-              
-              {/* Title */}
-              <h3 className="text-xl font-bold text-gray-800 mb-3">
-                {step.title}
-              </h3>
 
-              {/* Description */}
-              <p className="text-gray-600 leading-relaxed">
-                {step.description}
-              </p>
+              <div className="space-y-3">
+                <h3 className="text-xl font-black text-slate-900 tracking-tight group-hover:text-blue-600 transition-colors">
+                  {step.title}
+                </h3>
+                <p className="text-sm text-slate-500 font-medium leading-relaxed">
+                  {step.description}
+                </p>
+              </div>
+
+              <div className="mt-6 w-10 h-1 bg-slate-100 group-hover:w-20 group-hover:bg-blue-600 transition-all duration-500 rounded-full"></div>
             </div>
           ))}
+        </div>
+
+        <div className="mt-24 text-center">
+            <div className="inline-flex flex-col md:flex-row items-center gap-6 p-4 md:p-2 bg-slate-50 rounded-[2.5rem] border border-slate-100">
+                <p className="pl-6 text-sm font-bold text-slate-600">Ready to get started with your first project?</p>
+                <button className="bg-slate-900 text-white px-8 py-4 rounded-full text-xs font-black uppercase tracking-widest hover:bg-blue-600 transition-all active:scale-95 shadow-lg shadow-slate-200">
+                    Get an Estimate Now
+                </button>
+            </div>
         </div>
       </div>
     </section>

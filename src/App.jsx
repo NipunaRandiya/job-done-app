@@ -8,27 +8,34 @@ import WorkerLayout from "./layouts/WorkerLayout";
 import ProDashboard from "./pages/worker/DashboardPage";
 import BookingPage from "./pages/customer/BookingPage";
 import CustomerDashboard from "./pages/customer/CustomerDashboard";
+import AdminRoutes from "./layouts/AdminRoutes.jsx";
+import { ToastProvider } from "./context/ToastContext";
 
 function App() {
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
-        <Route path="/client-register" element={<ClientRegisterPage />} />
+    <ToastProvider>
+      <Router>
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/client-register" element={<ClientRegisterPage />} />
 
-        <Route path="/booking" element={<BookingPage/>} />
+          <Route path="/booking" element={<BookingPage/>} />
 
-        {/* Customer Routes */}
-        <Route path="/customer/*" element={<CustomerLayout />}>
-          <Route path="dashboard" element={<CustomerDashboard/>} />
-        </Route>
+          {/* Customer Routes */}
+          <Route path="/customer/*" element={<CustomerLayout />}>
+            <Route path="dashboard" element={<CustomerDashboard/>} />
+          </Route>
 
-        {/* Worker Routes */}
-        <Route path="/worker/*" element={<WorkerLayout />}/>
-      </Routes>
-    </Router>
+          {/* Worker Routes */}
+          <Route path="/worker/*" element={<WorkerLayout />}/>
+
+          {/* Admin Routes */}
+          <Route path="/admin/*" element={<AdminRoutes />} />
+        </Routes>
+      </Router>
+    </ToastProvider>
   );
 }
 

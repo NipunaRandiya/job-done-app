@@ -1,104 +1,99 @@
+import React, { useState } from 'react';
 import { BsGeoAlt } from 'react-icons/bs';
+import { APIProvider, Map, AdvancedMarker } from '@vis.gl/react-google-maps';
 
 const API_WORK_TYPES = [
-    'Plumbing', 
-    'Electrical Wiring', 
-    'Tiling', 
-    'Painting', 
-    'Building / Masonry', 
-    'Roofing'
+  'Plumbing', 
+  'Electrical Wiring', 
+  'Tiling', 
+  'Painting', 
+  'Building / Masonry', 
+  'Roofing'
 ];
 
 export const DefineWorkTab = ({ data, updateData }) => {
+  const [markerLocation, setMarkerLocation] = useState(data.latLng || null);
+
   const handleChange = (e) => updateData(e.target.name, e.target.value);
 
+  const handleMapClick = (e) => {
+    const lat = e.detail.latLng.lat;
+    const lng = e.detail.latLng.lng;
+    const newLocation = { lat, lng };
+    
+    setMarkerLocation(newLocation);
+    
+    updateData("latLng", newLocation); 
+  };
+
+  const labelClass = "block mb-2 text-[10px] font-black uppercase tracking-widest text-slate-400";
+  const inputClass = "block w-full p-4 bg-slate-50 border-none rounded-2xl text-sm font-bold text-slate-700 focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all outline-none";
+
   return (
-    <div>
-      <h2 className="mb-6 text-2xl font-semibold text-gray-900">Step 1: Define Your Work & Location</h2>
-      <form className="space-y-5">
-        
+    <div className="space-y-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label htmlFor="workType" className="block mb-1 text-sm font-medium text-gray-700">Work Type *</label>
-          <select 
-            id="workType" 
-            name="workType" 
-            value={data.workType} 
-            onChange={handleChange} 
-            className="block w-full p-3 bg-white border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
-          >
-            <option value="">Select work type</option>
-            {API_WORK_TYPES.map(type => (
-                <option key={type} value={type}>{type}</option>
-            ))}
+          <label className={labelClass}>Work Type *</label>
+          <select name="workType" value={data.workType} onChange={handleChange} className={inputClass}>
+            <option value="">Select Service</option>
+            {API_WORK_TYPES.map(type => <option key={type} value={type}>{type}</option>)}
           </select>
         </div>
         
         <div>
-          <label htmlFor="description" className="block mb-1 text-sm font-medium text-gray-700">Work Description *</label>
-          <textarea 
-            id="description" 
-            name="description" 
-            rows="4" 
-            placeholder="Be as specific as possible" 
-            value={data.description} 
-            onChange={handleChange} 
-            className="block w-full p-3 bg-white border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
-          ></textarea>
-        </div>
-        
-        <div>
-          <label htmlFor="location" className="block mb-1 text-sm font-medium text-gray-700">Workplace Location *</label>
+          <label className={labelClass}>Written Workplace Address *</label>
           <div className="relative">
-            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none"><BsGeoAlt className="text-gray-400" /></div>
+            <BsGeoAlt className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
             <input 
-              type="text" 
-              id="location" 
               name="location" 
-              placeholder="Enter your full address" 
+              type="text" 
+              placeholder="e.g. 123 Main St, Colombo" 
               value={data.location} 
               onChange={handleChange} 
-              className="block w-full p-3 pl-10 bg-white border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500" 
+              className={`${inputClass} pl-12`} 
             />
           </div>
         </div>
-        
-        <div>
-          <label htmlFor="startDate" className="block mb-1 text-sm font-medium text-gray-700">
-            Preferred Start Date *
-          </label>
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-            </div>
-            <input
-              type="date"
-              id="startDate"
-              name="startDate"
-              value={data.startDate}
-              onChange={handleChange}
-              className="block w-full p-3 bg-white border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
-            />
-          </div>
-        </div>
+      </div>
 
-        <div>
-          <label htmlFor="endDate" className="block mb-1 text-sm font-medium text-gray-700">
-            Preferred End Date *
-          </label>
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-            </div>
-            <input
-              type="date"
-              id="endDate"
-              name="endDate"
-              value={data.endDate}
-              onChange={handleChange}
-              className="block w-full p-3 bg-white border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
-            />
-          </div>
+      <div className="space-y-3">
+        <label className={labelClass}>Pin Precise Location *</label>
+        <div className="rounded-[2.5rem] overflow-hidden border-4 border-slate-50 h-80 w-full shadow-inner relative">
+          <APIProvider apiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY}>
+            <Map
+              defaultCenter={{ lat: 6.9271, lng: 79.8612 }} 
+              defaultZoom={12}
+              mapId="BOOKING_MAP_ID" 
+              onClick={handleMapClick}
+              disableDefaultUI={true}
+              gestureHandling={'greedy'}
+            >
+              {(markerLocation || data.latLng) && (
+                <AdvancedMarker position={markerLocation || data.latLng} />
+              )}
+            </Map>
+          </APIProvider>
         </div>
+        <p className="text-[9px] text-slate-400 ml-4 font-bold italic">
+          * Click on the map to mark exactly where the service is required.
+        </p>
+      </div>
 
-      </form>
+      <div>
+        <label className={labelClass}>Work Description *</label>
+        <textarea name="description" rows="4" placeholder="Be specific..." value={data.description} onChange={handleChange} className={inputClass}></textarea>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label className={labelClass}>Preferred Start Date</label>
+          <input name="startDate" type="date" value={data.startDate} onChange={handleChange} className={inputClass} />
+        </div>
+        <div>
+          <label className={labelClass}>Preferred End Date</label>
+          <input name="endDate" type="date" value={data.endDate} onChange={handleChange} className={inputClass} />
+        </div>
+      </div>
     </div>
   );
 };
