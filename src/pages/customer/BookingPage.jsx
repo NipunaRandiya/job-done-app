@@ -5,10 +5,12 @@ import { ProgressBar } from '../../components/customer/ProgressBar';
 import { DefineWorkTab } from '../../components/customer/DefineWorkTab';
 import { ConfirmationTab } from '../../components/customer/ConfirmationTab';
 import { SelectWorkerTab } from '../../components/customer/SelectWorkerTab';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 export default function BookingPage() {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   
   const problem = searchParams.get('problem');
 
@@ -33,54 +35,36 @@ export default function BookingPage() {
   const updateData = (key, value) => setFormData(prev => ({ ...prev, [key]: value }));
 
   const fetchProblemDetails = async (problemDescription) => {
-    if (!problemDescription) return;
-
-    setError(null);
-    setIsLoading(true);
-    
-    try {
-      const res = await axios.post("http://localhost:5000/api/solve-problem", { problem: problemDescription }, {
-        headers: { "Content-Type": "application/json" }
-      });
-
-      const data = res.data;
-
+      setIsLoading(true);
       try {
-        const cleaned = data.result
-          .replace(/^```json\s*/, '')
-          .replace(/\s*```$/, '');
+          const res = await axios.post("http://localhost:5000/api/solve-problem", { 
+              problem: problemDescription 
+          });
+          
+          const data = res.data;
 
-        const parsed = JSON.parse(cleaned);
-
-        setFormData(prev => ({
-          ...prev,
-          problemId: parsed.problemId || prev.problemId,
-          workType: parsed.workType || prev.workType,
-          description: parsed.workBreakdown.join(', ') || problemDescription, 
-          workload: parsed.workload,        
-          unit: parsed.unit,                
-          estimatedQuantity: parsed.estimatedQuantity, 
-        }));
-        
-      } catch (err) {
-        console.error("Failed to parse result as JSON:", data.result, err);
-        setError("Failed to process problem details from server. Please check the API response format.");
+          setFormData(prev => ({
+              ...prev,
+              workType: data.workType,
+              description: data.workBreakdown 
+              ? data.workBreakdown.map(item => item.task).join(', ') 
+              : problemDescription,
+              workload: data.workload, 
+              unit: data.unit,
+              estimatedQuantity: data.estimatedQuantity,
+              estimated_cost_lkr: data.estimated_cost_lkr, 
+          }));
+      } catch (error) {
+          setError("AI Service currently unavailable.");
+      } finally {
+          setIsLoading(false);
       }
-
-    } catch (error) {
-      console.error("Error solving problem:", error);
-      setError("Error fetching problem details. Please check your network or server endpoint.");
-    } finally {
-      setIsLoading(false);
-    }
   };
 
   useEffect(() => {
     if (problem) {
       fetchProblemDetails(problem);
     } else {
-      // NOTE: This will now only show if there's no 'problem' param.
-      // If the API fails to load data (workType, etc.) a different error will show.
       setError("Error: No initial problem description found."); 
     }
   }, [problem]); 
@@ -110,87 +94,101 @@ export default function BookingPage() {
     }
   };
 
-  const handleConfirmBooking = () => {
-    // 💡 Generate the final structured body here before submission
+  const handleConfirmBooking = async () => {
     const finalBookingBody = {
-        Work_Type: formData.workType,
-        Workload_Score: formData.workload,
-        Work_Size: formData.estimatedQuantity,
+        workType: formData.workType,
+        totalWorkingHours: formData.workload,
+        paymentMethod: "cash", 
         Unit: formData.unit,
         Location: formData.location,
-        Urgency: "Normal", // Assuming default urgency for now
+        Urgency: "Normal", 
         StartDate: formData.startDate,
-        EndDate: formData.endDate,
+        completionDate: formData.endDate,
         Description: formData.description,
-        WorkerId: formData.selectedWorker ? formData.selectedWorker.id : null,
-        // Include other fields like discountCode as needed for the backend
+        workerId: formData.selectedWorker ? formData.selectedWorker._id : null,
+        estimatedCost: formData.estimated_cost_lkr,
     };
     
-    // Final booking submission logic here
-    alert("Booking Confirmed! Details: " + JSON.stringify(finalBookingBody, null, 2));
-    // Replace alert with actual POST request to your booking endpoint
-    // try {
-    //    await axios.post("http://localhost:5000/api/book-service", finalBookingBody);
-    //    // navigate('/confirmation-page');
-    // } catch (e) {
-    //    alert("Booking failed: " + e.message);
-    // }
+    try {
+        setIsLoading(true);
+        const response = await axios.post("http://localhost:5000/api/work-orders/create", finalBookingBody);
+        
+        if (response.status === 201) {
+            navigate("/client-register", { 
+                state: { 
+                    pendingOrderId: response.data._id,
+                    message: "Booking submitted! Register to track your professional." 
+                } 
+            });
+        }
+    } catch (err) {
+        setError(err.response?.data?.message || "Failed to create work order. Please try again.");
+    } finally {
+        setIsLoading(false);
+    }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-10 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow-lg">
-        <h1 className="text-3xl font-bold mb-2">Book Your Service</h1>
-        <p className="mb-6 text-gray-500">Complete the steps below to hire a professional.</p>
-
-        <ProgressBar currentStep={step} />
-
-        {/* Display Loading/Error State */}
-        {isLoading && (
-          <div className="p-4 text-center text-blue-600 font-semibold">
-            Processing your request...
-          </div>
-        )}
-        {error && (
-          <div className="p-4 text-center text-red-600 bg-red-100 border border-red-300 rounded-md mb-4">
-            ⚠️ {error}
-          </div>
-        )}
+    <div className="min-h-screen bg-[#f8fafc] py-16 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto">
         
-        {/* Render Tabs */}
-        {!isLoading && !error && (
-            <>
-              {step === 1 && <DefineWorkTab data={formData} updateData={updateData} />}
-              {step === 2 && <SelectWorkerTab data={formData} updateData={updateData} />}
-              {step === 3 && <ConfirmationTab data={formData} />}
-            </>
-        )}
+        <div className="mb-12 text-center">
+          <h1 className="text-4xl font-black text-slate-900 tracking-tight mb-3">Book Your Service</h1>
+          <p className="text-slate-500 font-medium uppercase text-[10px] tracking-[0.3em]">Complete the steps to hire a professional</p>
+        </div>
 
-        <div className="flex justify-between mt-10">
-          <button 
-            onClick={() => setStep(step - 1)} 
-            disabled={step === 1 || isLoading} 
-            className="flex items-center gap-2 px-5 py-2 rounded-md border font-semibold text-sm hover:bg-gray-100 disabled:text-gray-400 disabled:border-gray-200"
-          >
-            <BsArrowLeft /> Back
-          </button>
+        <div className="bg-white rounded-[2.5rem] shadow-2xl shadow-blue-100/50 border border-slate-50 overflow-hidden">
+          <div className="p-8 md:p-12">
+            <ProgressBar currentStep={step} />
 
-          {step < 3 ? (
-            <button 
-              onClick={handleNextStep} 
-              disabled={isLoading || error} // The validation is now inside handleNextStep
-              className={`flex items-center gap-2 px-5 py-2 rounded-md bg-blue-600 text-white font-semibold hover:bg-blue-700 ${isLoading || error ? 'opacity-70 cursor-not-allowed' : ''}`}
-            >
-              Next <BsArrowRight />
-            </button>
-          ) : (
-            <button 
-              onClick={handleConfirmBooking} 
-              className="px-5 py-2 rounded-md bg-green-600 text-white font-semibold hover:bg-green-700"
-            >
-              Confirm Booking
-            </button>
-          )}
+            {isLoading && (
+              <div className="flex flex-col items-center justify-center py-20 space-y-4">
+                <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                <p className="text-xs font-black uppercase tracking-widest text-blue-600">Processing AI Insights...</p>
+              </div>
+            )}
+
+            {error && (
+              <div className="p-6 rounded-3xl bg-red-50 border border-red-100 text-red-600 text-center mb-8">
+                <p className="text-xs font-black uppercase tracking-widest leading-loose">⚠️ {error}</p>
+              </div>
+            )}
+            
+            {!isLoading && !error && (
+              <div className="mt-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                {step === 1 && <DefineWorkTab data={formData} updateData={updateData} />}
+                {step === 2 && <SelectWorkerTab data={formData} updateData={updateData} />}
+                {step === 3 && <ConfirmationTab data={formData} />}
+              </div>
+            )}
+
+            <div className="flex justify-between mt-16 pt-8 border-t border-slate-50">
+              <button 
+                onClick={() => setStep(step - 1)} 
+                disabled={step === 1 || isLoading} 
+                className="flex items-center gap-2 px-8 py-4 rounded-2xl border border-slate-200 text-[10px] font-black uppercase tracking-[0.2em] text-slate-600 hover:bg-slate-50 disabled:opacity-30 transition-all"
+              >
+                <BsArrowLeft strokeWidth={1} /> Back
+              </button>
+
+              {step < 3 ? (
+                <button 
+                  onClick={handleNextStep} 
+                  disabled={isLoading || error}
+                  className="flex items-center gap-3 px-10 py-4 rounded-2xl bg-slate-900 text-white text-[10px] font-black uppercase tracking-[0.2em] shadow-xl shadow-slate-200 hover:bg-blue-600 transition-all active:scale-95"
+                >
+                  Next Step <BsArrowRight strokeWidth={1} />
+                </button>
+              ) : (
+                <button 
+                  onClick={handleConfirmBooking} 
+                  className="px-10 py-4 rounded-2xl bg-blue-600 text-white text-[10px] font-black uppercase tracking-[0.2em] shadow-xl shadow-blue-200 hover:bg-blue-700 transition-all active:scale-95"
+                >
+                  Confirm Booking
+                </button>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>
