@@ -152,7 +152,6 @@ graph TD
 
     Logic <--> DB
     Logic <-->|Internal REST| AI_Svc
-    Logic <-->|Internal REST| Scrap_Svc
     Logic <-->|External API| Stripe
 
     %% Blue & White Theme Styling
